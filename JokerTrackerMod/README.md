@@ -1,12 +1,13 @@
 # Balatro Mod - Joker & Hand Tracker
 
-A simple Balatro mod that displays your current jokers and hand cards in the console.
+A simple Balatro mod that displays your current jokers, hand cards, and selected hand score in the console.
 
 ## Features
 
 - **Instant Overview**: Press 'J' to see all your current jokers AND hand cards
 - **Joker Information**: Shows joker names, editions (Foil, Holographic, Polychrome, Negative), and special properties
 - **Hand Display**: View all cards in your hand with rank, suit, enhancements, seals, and editions
+- **Score Calculation**: See the potential score for your selected hand based on hand type and level
 - **Status Tracking**: Displays Eternal, Rental, and Perishable status with remaining rounds
 - **Enhancement Detection**: See card enhancements (Bonus, Mult, Wild, Glass, Steel, Stone, Gold, Lucky)
 - **Seal Display**: Shows if cards have Red, Blue, Gold, or Purple seals
@@ -56,13 +57,35 @@ You have 8 card(s) in hand:
 
 1. A♠ [Steel] [Holographic]
 2. K♥ {Gold Seal}
-3. Q♦ [Mult] [Foil]
-4. J♣
-5. 10♠ [Glass]
+3. Q♦ [Mult] [Foil] (Selected)
+4. J♣ (Selected)
+5. 10♠ [Glass] (Selected)
 6. 9♥ [Bonus] {Red Seal}
 7. 8♦
 8. 7♣ [Wild]
 
+
+--- SELECTED HAND SCORE ---
+
+You have 3 card(s) selected:
+  1. Q♦
+  2. J♣
+  3. 10♠
+
+Detected Hand: Straight
+Hand Level: 5 (Played 12 times)
+Base Chips: 60
+Base Mult: 8
+Base Score: 480 (60 × 8)
+
+Note: Actual score will differ due to:
+  - Individual card chip values
+  - Card enhancements (Bonus, Mult, etc.)
+  - Joker effects and multipliers
+  - Editions (Foil +50 chips, Holo +10 mult, etc.)
+  - Seals and other effects
+
+==================================================
 ```
 
 ## What It Displays
@@ -83,11 +106,21 @@ You have 8 card(s) in hand:
 - **Seal** (Red, Blue, Gold, Purple)
 - **Selection Status** (if currently selected)
 
+### For Selected Hand Score:
+- **Selected Cards** - List of all highlighted/selected cards
+- **Hand Type** - The poker hand formed (Pair, Flush, Straight, etc.)
+- **Hand Level** - Current level of that hand type
+- **Times Played** - How many times you've played this hand
+- **Base Chips** - Base chip value for the hand
+- **Base Mult** - Base multiplier for the hand
+- **Base Score** - Simple calculation (chips × mult)
+- **Score Modifiers** - Reminder of factors that affect final score
+
 ## Mod Information
 
 - **Mod Name**: Joker & Hand Tracker
 - **Mod ID**: JokerTracker
-- **Version**: 1.1.0
+- **Version**: 1.2.0
 - **Author**: BalatroMod
 
 ## Troubleshooting
@@ -104,6 +137,11 @@ You have 8 card(s) in hand:
 **Hand cards not displaying?**
 - Make sure you have cards in your hand
 - The tracker will show "Your hand is empty" if you've played all cards
+
+**Score calculation not working?**
+- Score calculation requires you to be in an active hand with plays remaining
+- Select your cards first, then press 'J' to see the evaluated hand
+- If hand detection fails, the mod will still show which cards are selected
 
 ## Quick Restart Tip
 
