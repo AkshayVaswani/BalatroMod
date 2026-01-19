@@ -2,25 +2,50 @@
 --- MOD_NAME: Joker Tracker
 --- MOD_ID: JokerTracker
 --- MOD_AUTHOR: [BalatroMod]
---- MOD_DESCRIPTION: A simple mod that displays your current jokers when you press 'J'
---- VERSION: 1.0.0
+--- MOD_DESCRIPTION: A simple mod that displays your current jokers and hand cards when you press 'J'
+--- VERSION: 1.1.0
 
 ----------------------------------------------
 ---------------- MOD CODE --------------------
 ----------------------------------------------
 
--- Function to display all current jokers
-local function display_jokers()
+-- Helper function to get suit symbol
+local function get_suit_symbol(suit)
+    local suit_map = {
+        Spades = "♠",
+        Hearts = "♥",
+        Diamonds = "♦",
+        Clubs = "♣"
+    }
+    return suit_map[suit] or suit
+end
+
+-- Helper function to get rank display
+local function get_rank_display(rank)
+    local rank_map = {
+        ["2"] = "2", ["3"] = "3", ["4"] = "4", ["5"] = "5",
+        ["6"] = "6", ["7"] = "7", ["8"] = "8", ["9"] = "9",
+        ["10"] = "10", Jack = "J", Queen = "Q", King = "K", Ace = "A"
+    }
+    return rank_map[rank] or rank
+end
+
+-- Function to display all current jokers and hand cards
+local function display_game_state()
     -- Check if we're in a game
     if not G.jokers then
-        print("=== Joker Tracker ===")
-        print("No jokers available (not in a run)")
-        print("====================")
+        print("=== Joker & Hand Tracker ===")
+        print("Not currently in a run")
+        print("============================")
         return
     end
 
-    -- Print header
-    print("\n=== Current Jokers ===")
+    print("\n" .. string.rep("=", 50))
+    print("           JOKER & HAND TRACKER")
+    print(string.rep("=", 50))
+
+    -- ===== JOKERS SECTION =====
+    print("\n--- JOKERS ---")
 
     -- Check if we have any jokers
     if #G.jokers.cards == 0 then
@@ -74,7 +99,59 @@ local function display_jokers()
         end
     end
 
-    print("======================\n")
+    -- ===== HAND CARDS SECTION =====
+    print("\n--- CARDS IN HAND ---")
+
+    if not G.hand or not G.hand.cards then
+        print("No hand available")
+    elseif #G.hand.cards == 0 then
+        print("Your hand is empty")
+    else
+        print("You have " .. #G.hand.cards .. " card(s) in hand:")
+        print("")
+
+        -- Loop through all cards in hand
+        for i, card in ipairs(G.hand.cards) do
+            -- Get basic card info
+            local rank = get_rank_display(card.base.value)
+            local suit = get_suit_symbol(card.base.suit)
+            local card_display = rank .. suit
+
+            -- Check for enhancement
+            local enhancement = ""
+            if card.ability.effect and card.ability.effect ~= "Base" then
+                enhancement = " [" .. card.ability.effect .. "]"
+            end
+
+            -- Check for edition
+            local edition = ""
+            if card.edition then
+                if card.edition.foil then edition = " [Foil]"
+                elseif card.edition.holo then edition = " [Holographic]"
+                elseif card.edition.polychrome then edition = " [Polychrome]"
+                elseif card.edition.negative then edition = " [Negative]"
+                end
+            end
+
+            -- Check for seal
+            local seal = ""
+            if card.seal then
+                seal = " {" .. card.seal .. " Seal}"
+            end
+
+            -- Check if card is selected
+            local selected = ""
+            if card.highlighted then
+                selected = " (Selected)"
+            end
+
+            print(i .. ". " .. card_display .. enhancement .. edition .. seal .. selected)
+        end
+
+        print("")
+    end
+
+    print(string.rep("=", 50) .. "\n")
 end
 
 -- Register the keybind using SMODS
@@ -82,14 +159,14 @@ SMODS.Keybind{
     key = 'joker_tracker',
     key_pressed = 'j',
     action = function(controller)
-        display_jokers()
+        display_game_state()
     end
 }
 
 -- Also add a message when the mod loads
-print("=== Joker Tracker Mod Loaded ===")
-print("Press 'J' to display your current jokers!")
-print("================================")
+print("=== Joker & Hand Tracker Mod Loaded ===")
+print("Press 'J' to display your jokers and hand cards!")
+print("=========================================")
 
 ----------------------------------------------
 ---------------- MOD CODE END ----------------
