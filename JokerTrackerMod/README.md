@@ -1,12 +1,15 @@
-# Balatro Mod - Joker Tracker
+# Balatro Mod - Joker & Hand Tracker
 
-A simple Balatro mod that displays your current jokers in the console.
+A simple Balatro mod that displays your current jokers and hand cards in the console.
 
 ## Features
 
-- **Instant Joker Overview**: Press 'J' to see all your current jokers
-- **Detailed Information**: Shows joker names, editions (Foil, Holographic, Polychrome, Negative), and special properties
+- **Instant Overview**: Press 'J' to see all your current jokers AND hand cards
+- **Joker Information**: Shows joker names, editions (Foil, Holographic, Polychrome, Negative), and special properties
+- **Hand Display**: View all cards in your hand with rank, suit, enhancements, seals, and editions
 - **Status Tracking**: Displays Eternal, Rental, and Perishable status with remaining rounds
+- **Enhancement Detection**: See card enhancements (Bonus, Mult, Wild, Glass, Steel, Stone, Gold, Lucky)
+- **Seal Display**: Shows if cards have Red, Blue, Gold, or Purple seals
 - **Console Output**: All information is printed to the game console for easy reference
 
 ## Installation
@@ -30,13 +33,12 @@ A simple Balatro mod that displays your current jokers in the console.
 ## Usage
 
 1. Start a run in Balatro
-2. Press the **'J' key** at any time to display your current jokers
+2. Press the **'J' key** at any time to display your current jokers and hand cards
 3. Check the console output (press F2 or tilde key `~` to open console in most setups)
 
 ### Example Output
 
 ```
-=== Current Jokers ===
 You have 3 joker(s):
 
 1. Joker [Foil] (Eternal)
@@ -48,12 +50,24 @@ You have 3 joker(s):
 3. Ice Cream (Perishable: 5 rounds left)
    ID: j_ice_cream
 
-======================
+
+--- CARDS IN HAND ---
+You have 8 card(s) in hand:
+
+1. A♠ [Steel] [Holographic]
+2. K♥ {Gold Seal}
+3. Q♦ [Mult] [Foil]
+4. J♣
+5. 10♠ [Glass]
+6. 9♥ [Bonus] {Red Seal}
+7. 8♦
+8. 7♣ [Wild]
+
 ```
 
 ## What It Displays
 
-For each joker, the tracker shows:
+### For Each Joker:
 - **Position** in your joker lineup (1, 2, 3, etc.)
 - **Name** of the joker
 - **Edition** if applicable (Foil, Holographic, Polychrome, Negative)
@@ -62,11 +76,18 @@ For each joker, the tracker shows:
 - **Perishable** status with rounds remaining
 - **Internal ID** for reference
 
+### For Each Hand Card:
+- **Rank and Suit** (displayed with symbols: ♠♥♦♣)
+- **Enhancement** (Bonus, Mult, Wild, Glass, Steel, Stone, Gold, Lucky)
+- **Edition** (Foil, Holographic, Polychrome, Negative)
+- **Seal** (Red, Blue, Gold, Purple)
+- **Selection Status** (if currently selected)
+
 ## Mod Information
 
-- **Mod Name**: Joker Tracker
+- **Mod Name**: Joker & Hand Tracker
 - **Mod ID**: JokerTracker
-- **Version**: 1.0.0
+- **Version**: 1.1.0
 - **Author**: BalatroMod
 
 ## Troubleshooting
@@ -79,6 +100,10 @@ For each joker, the tracker shows:
 **Console not showing?**
 - The console key varies by setup, try F2, tilde (~), or check Lovely Injector documentation
 - Make sure you're pressing 'J' during an active run
+
+**Hand cards not displaying?**
+- Make sure you have cards in your hand
+- The tracker will show "Your hand is empty" if you've played all cards
 
 ## Quick Restart Tip
 
