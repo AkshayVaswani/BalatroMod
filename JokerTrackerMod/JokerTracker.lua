@@ -2,8 +2,8 @@
 --- MOD_NAME: Joker Tracker
 --- MOD_ID: JokerTracker
 --- MOD_AUTHOR: [BalatroMod]
---- MOD_DESCRIPTION: A simple mod that displays your current jokers and hand cards when you press 'J'
---- VERSION: 1.1.0
+--- MOD_DESCRIPTION: A simple mod that displays your current jokers, hand cards, and selected hand score when you press 'J'
+--- VERSION: 1.2.0
 
 ----------------------------------------------
 ---------------- MOD CODE --------------------
@@ -28,6 +28,83 @@ local function get_rank_display(rank)
         ["10"] = "10", Jack = "J", Queen = "Q", King = "K", Ace = "A"
     }
     return rank_map[rank] or rank
+end
+
+-- Helper function to get selected cards
+local function get_selected_cards()
+    if not G.hand or not G.hand.cards then
+        return {}
+    end
+
+    local selected = {}
+    for _, card in ipairs(G.hand.cards) do
+        if card.highlighted then
+            table.insert(selected, card)
+        end
+    end
+    return selected
+end
+
+-- Function to calculate and display score for selected cards
+local function calculate_selected_score()
+    local selected = get_selected_cards()
+
+    if #selected == 0 then
+        print("No cards selected")
+        return
+    end
+
+    print("You have " .. #selected .. " card(s) selected:")
+
+    -- Display selected cards
+    for i, card in ipairs(selected) do
+        local rank = get_rank_display(card.base.value)
+        local suit = get_suit_symbol(card.base.suit)
+        print("  " .. i .. ". " .. rank .. suit)
+    end
+
+    print("")
+
+    -- Check if we can access the hand evaluation
+    -- The game evaluates hands through G.GAME.selected_hand
+    if G.GAME and G.GAME.current_round and G.GAME.current_round.hands_left and G.GAME.current_round.hands_left > 0 then
+        -- Try to get the currently evaluated hand text
+        if G.GAME.selected_hand and type(G.GAME.selected_hand) == "string" then
+            local hand_name = G.GAME.selected_hand
+            print("Detected Hand: " .. hand_name)
+
+            -- Get hand level and chips/mult from G.GAME.hands
+            if G.GAME.hands and G.GAME.hands[hand_name] then
+                local hand_data = G.GAME.hands[hand_name]
+                local chips = hand_data.chips or 0
+                local mult = hand_data.mult or 0
+                local level = hand_data.level or 1
+                local played = hand_data.played or 0
+
+                print("Hand Level: " .. level .. " (Played " .. played .. " times)")
+                print("Base Chips: " .. chips)
+                print("Base Mult: " .. mult)
+
+                -- Calculate base score (chips × mult)
+                local base_score = chips * mult
+                print("Base Score: " .. base_score .. " (" .. chips .. " × " .. mult .. ")")
+            else
+                print("(Could not retrieve hand scoring data)")
+            end
+        else
+            print("(Hand not yet evaluated - try selecting your cards first)")
+        end
+
+        print("")
+        print("Note: Actual score will differ due to:")
+        print("  - Individual card chip values")
+        print("  - Card enhancements (Bonus, Mult, etc.)")
+        print("  - Joker effects and multipliers")
+        print("  - Editions (Foil +50 chips, Holo +10 mult, etc.)")
+        print("  - Seals and other effects")
+    else
+        print("(Score calculation only available during active hands)")
+    end
 end
 
 -- Function to display all current jokers and hand cards
@@ -151,6 +228,13 @@ local function display_game_state()
         print("")
     end
 
+    -- ===== SELECTED CARDS SCORE SECTION =====
+    print("\n--- SELECTED HAND SCORE ---")
+    print("")
+
+    calculate_selected_score()
+
+    print("")
     print(string.rep("=", 50) .. "\n")
 end
 
@@ -164,9 +248,12 @@ SMODS.Keybind{
 }
 
 -- Also add a message when the mod loads
-print("=== Joker & Hand Tracker Mod Loaded ===")
-print("Press 'J' to display your jokers and hand cards!")
-print("=========================================")
+print("=== Joker & Hand Tracker Mod Loaded (v1.2.0) ===")
+print("Press 'J' to display:")
+print("  - Current jokers")
+print("  - Cards in hand")
+print("  - Selected hand score")
+print("=================================================")
 
 ----------------------------------------------
 ---------------- MOD CODE END ----------------
