@@ -39,11 +39,6 @@ A simple Balatro mod that displays your current jokers and hand cards in the con
 ### Example Output
 
 ```
-==================================================
-           JOKER & HAND TRACKER
-==================================================
-
---- JOKERS ---
 You have 3 joker(s):
 
 1. Joker [Foil] (Eternal)
@@ -68,7 +63,6 @@ You have 8 card(s) in hand:
 7. 8♦
 8. 7♣ [Wild]
 
-==================================================
 ```
 
 ## What It Displays
