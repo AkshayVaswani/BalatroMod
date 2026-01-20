@@ -100,9 +100,17 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Polychrome Gold Red-Seal King♠ (First Pack)",
+							label = "Search Polychrome Gold/Steel Red-Seal Face Card (First Pack)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchGodKing",
+							callback = function(_set_toggle)
+								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+							end,
+						}),
+						create_toggle({
+							label = "Search Negative Blueprint/Brainstorm (Antes 1-2)",
+							ref_table = Brainstorm.SETTINGS.autoreroll,
+							ref_value = "searchNegativeBlueprint",
 							callback = function(_set_toggle)
 								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 							end,

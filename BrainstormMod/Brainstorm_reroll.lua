@@ -32,8 +32,8 @@ end
 function Brainstorm.simulate_shop_jokers(seed_found, ante)
 	local jokers_found = {}
 
-	-- Simulate up to 4 shop slots (standard shops have 2 jokers, but we check more to be thorough)
-	for slot = 1, 4 do
+	-- Check only the first 2 shop slots (initial shop, no rerolls)
+	for slot = 1, 2 do
 		-- Determine if this slot is a joker (vs tarot/planet/spectral)
 		-- Use "cdt" + ante as the seed string (Card_Type from Immolate)
 		local card_type_poll = pseudorandom(Brainstorm.pseudoseed("cdt" .. ante .. seed_found))
@@ -42,9 +42,9 @@ function Brainstorm.simulate_shop_jokers(seed_found, ante)
 		-- Total rate = 28, so joker threshold is 20/28 ≈ 0.714
 		if card_type_poll < 0.714 then
 			-- This slot contains a joker
-			local joker_key = Brainstorm.get_shop_joker(seed_found, ante)
-			if joker_key then
-				table.insert(jokers_found, joker_key)
+			local joker_data = Brainstorm.get_shop_joker(seed_found, ante)
+			if joker_data then
+				table.insert(jokers_found, joker_data)
 			end
 		end
 	end
@@ -53,7 +53,7 @@ function Brainstorm.simulate_shop_jokers(seed_found, ante)
 end
 
 -- Get a shop joker for a given seed and ante
--- Uses weighted selection similar to booster pack generation
+-- Returns table with {key, edition}
 function Brainstorm.get_shop_joker(seed_found, ante)
 	local ante_str = tostring(ante)
 
@@ -67,6 +67,20 @@ function Brainstorm.get_shop_joker(seed_found, ante)
 		rarity_id = 2 -- uncommon
 	else
 		rarity_id = 1 -- common
+	end
+
+	-- Determine edition (from Immolate's nextJoker)
+	-- Negative: >0.997, Polychrome: >0.994, Holographic: >0.98, Foil: >0.96
+	local edition_poll = pseudorandom(Brainstorm.pseudoseed("edi" .. "sho" .. ante_str .. seed_found))
+	local edition = "none"
+	if edition_poll > 0.997 then
+		edition = "e_negative"
+	elseif edition_poll > 0.994 then
+		edition = "e_polychrome"
+	elseif edition_poll > 0.98 then
+		edition = "e_holo"
+	elseif edition_poll > 0.96 then
+		edition = "e_foil"
 	end
 
 	-- Use Balatro's actual seed strings: "Joker1"=common, "Joker2"=uncommon, "Joker3"=rare
@@ -99,7 +113,7 @@ function Brainstorm.get_shop_joker(seed_found, ante)
 		end
 
 		if center then
-			return center.key
+			return {key = center.key, edition = edition}
 		end
 	end
 
@@ -115,14 +129,14 @@ function Brainstorm.check_blueprint_money_combo(seed_found)
 	for ante = 1, 2 do
 		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
 
-		for _, joker_key in ipairs(jokers) do
+		for _, joker_data in ipairs(jokers) do
 			-- Check for Blueprint or Brainstorm
-			if joker_key == "j_blueprint" or joker_key == "j_brainstorm" then
+			if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
 				has_blueprint = true
 			end
 
 			-- Check for money generating joker
-			if Brainstorm.is_joker_in_list(joker_key, Brainstorm.MONEY_JOKERS) then
+			if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
 				has_money_joker = true
 			end
 		end
@@ -142,9 +156,9 @@ function Brainstorm.check_blueprint_brainstorm(seed_found)
 	for ante = 1, 2 do
 		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
 
-		for _, joker_key in ipairs(jokers) do
+		for _, joker_data in ipairs(jokers) do
 			-- Check for Blueprint or Brainstorm
-			if joker_key == "j_blueprint" or joker_key == "j_brainstorm" then
+			if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
 				return true
 			end
 		end
@@ -159,9 +173,26 @@ function Brainstorm.check_money_joker(seed_found)
 	for ante = 1, 2 do
 		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
 
-		for _, joker_key in ipairs(jokers) do
+		for _, joker_data in ipairs(jokers) do
 			-- Check for money generating joker
-			if Brainstorm.is_joker_in_list(joker_key, Brainstorm.MONEY_JOKERS) then
+			if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+-- Check if negative Blueprint or Brainstorm exists in first 2 antes
+function Brainstorm.check_negative_blueprint_brainstorm(seed_found)
+	-- Check both ante 1 and ante 2 shops
+	for ante = 1, 2 do
+		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+
+		for _, joker_data in ipairs(jokers) do
+			-- Check for Blueprint or Brainstorm with negative edition
+			if (joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm") and joker_data.edition == "e_negative" then
 				return true
 			end
 		end
@@ -233,7 +264,7 @@ function Brainstorm.simulate_standard_card(seed_found, ante, card_index)
 	return card
 end
 
--- Check if first standard pack contains polychrome gold red-seal King of Spades
+-- Check if first standard pack contains polychrome gold/steel red-seal face card
 function Brainstorm.check_god_king(seed_found)
 	-- First, check if first pack is a standard pack
 	local first_pack = Brainstorm.simulate_first_pack(seed_found)
@@ -257,13 +288,13 @@ function Brainstorm.check_god_king(seed_found)
 		local card = Brainstorm.simulate_standard_card(seed_found, 1, i)
 
 		-- Check if this card matches our criteria:
-		-- King of Spades + Gold enhancement + Polychrome edition + Red seal
-		local is_king_spades = (card.base == "King" and card.suit == "Spades")
-		local is_gold = (card.enhancement == "m_gold")
+		-- Any face card (K, Q, J) + Any suit + Gold or Steel enhancement + Polychrome edition + Red seal
+		local is_face_card = (card.base == "King" or card.base == "Queen" or card.base == "Jack")
+		local is_gold_or_steel = (card.enhancement == "m_gold" or card.enhancement == "m_steel")
 		local is_polychrome = (card.edition == "e_polychrome")
 		local is_red_seal = (card.seal == "Red")
 
-		if is_king_spades and is_gold and is_polychrome and is_red_seal then
+		if is_face_card and is_gold_or_steel and is_polychrome and is_red_seal then
 			return true
 		end
 	end
@@ -333,6 +364,11 @@ end
 
 G.FUNCS.toggle_god_king_search = function(args)
 	Brainstorm.SETTINGS.autoreroll.searchGodKing = args.to_val
+	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+end
+
+G.FUNCS.toggle_negative_blueprint_search = function(args)
+	Brainstorm.SETTINGS.autoreroll.searchNegativeBlueprint = args.to_val
 	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 end
 
@@ -447,13 +483,23 @@ break end
 				seed_found = nil
 			end
 		end
-		-- Custom filter: Polychrome Gold Red-Seal King of Spades in first standard pack
+		-- Custom filter: Polychrome Gold/Steel Red-Seal Face card in first standard pack
 		if seed_found and Brainstorm.SETTINGS.autoreroll.searchGodKing then
 			local has_god_king = Brainstorm.check_god_king(seed_found)
 			if has_god_king then
 				print("[Brainstorm] Found God King card in seed: " .. seed_found)
 			end
 			if not has_god_king then
+				seed_found = nil
+			end
+		end
+		-- Custom filter: Negative Blueprint/Brainstorm in first 2 antes
+		if seed_found and Brainstorm.SETTINGS.autoreroll.searchNegativeBlueprint then
+			local has_negative = Brainstorm.check_negative_blueprint_brainstorm(seed_found)
+			if has_negative then
+				print("[Brainstorm] Found Negative Blueprint/Brainstorm in seed: " .. seed_found)
+			end
+			if not has_negative then
 				seed_found = nil
 			end
 		end
