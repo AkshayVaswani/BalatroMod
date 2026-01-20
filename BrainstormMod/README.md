@@ -62,3 +62,24 @@ To use this filter:
 4. Press `Ctrl + a` to start auto-rerolling
 
 The mod will automatically search for seeds meeting these criteria and start a run when a matching seed is found.
+
+#### Additional Custom Filters
+
+**Legendary Joker Filter**
+- Searches for seeds where a legendary joker (Chicot, Perkeo, Triboulet, or Yorick) appears in the shop during **Ante 1 or Ante 2**
+- Enable toggle: "Search Legendary Joker (Antes 1-2)"
+
+**God King Filter**
+- Searches for seeds where the first booster pack is a Standard Pack containing a very specific card:
+  - **King of Spades** (base card)
+  - **Gold enhancement** (multiplies card value by itself when scoring)
+  - **Polychrome edition** (+mult and Xmult bonuses)
+  - **Red seal** (retrigger card effect)
+- This combination is extremely rare and powerful for early game scoring
+- Enable toggle: "Search Polychrome Gold Red-Seal King♠ (First Pack)"
+
+**Using Multiple Filters Simultaneously**
+
+All custom filters can be used **together** - the mod will only find seeds that match **ALL enabled filters**. For example:
+- Enable both "Blueprint/Money" and "Legendary" to find seeds with all three joker types
+- Enable all three filters to find seeds with the perfect combination of jokers AND the god king card

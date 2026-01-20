@@ -136,6 +136,154 @@ function Brainstorm.check_blueprint_money_combo(seed_found)
 	return has_blueprint and has_money_joker
 end
 
+-- Check if a legendary joker exists in first 2 antes
+function Brainstorm.check_legendary_joker(seed_found)
+	-- Check both ante 1 and ante 2 shops
+	for ante = 1, 2 do
+		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+
+		for _, joker_key in ipairs(jokers) do
+			-- Check if this joker is legendary (rarity 4)
+			if G.P_CENTER_POOLS and G.P_CENTER_POOLS['Joker'] then
+				for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
+					if v.key == joker_key then
+						local joker_rarity = v.rarity or (v.config and v.config.rarity) or (v.config and v.config.center and v.config.center.rarity)
+						if joker_rarity == 4 then
+							return true
+						end
+						break
+					end
+				end
+			end
+		end
+	end
+
+	return false
+end
+
+-- Simulate a standard pack card generation
+-- Returns card properties: {base, enhancement, edition, seal}
+function Brainstorm.simulate_standard_card(seed_found, ante, card_index)
+	local ante_str = tostring(ante)
+	local card = {}
+
+	-- Enhancement check (60% chance of no enhancement, 40% chance of having one)
+	local has_enhancement_poll = pseudorandom(Brainstorm.pseudoseed("stdset" .. ante_str .. seed_found))
+	if has_enhancement_poll <= 0.6 then
+		card.enhancement = "none"
+	else
+		-- Has enhancement - select from pool using pseudorandom_element
+		if G.P_CENTER_POOLS and G.P_CENTER_POOLS['Enhanced'] then
+			local enh = pseudorandom_element(G.P_CENTER_POOLS['Enhanced'], Brainstorm.pseudoseed("Enhancedsta" .. ante_str .. seed_found))
+			card.enhancement = enh and enh.key or "none"
+		else
+			card.enhancement = "none"
+		end
+	end
+
+	-- Get base card (rank and suit) from 52-card deck
+	if G.P_CARDS then
+		local base_card = pseudorandom_element(G.P_CARDS, Brainstorm.pseudoseed("frontsta" .. ante_str .. seed_found))
+		card.base = base_card and base_card.value or "unknown"
+		card.suit = base_card and base_card.suit or "unknown"
+	else
+		card.base = "unknown"
+		card.suit = "unknown"
+	end
+
+	-- Edition check: Polychrome (0.988-1.0), Holographic (0.96-0.988), Foil (0.92-0.96), None (0-0.92)
+	local edition_poll = pseudorandom(Brainstorm.pseudoseed("standard_edition" .. ante_str .. seed_found))
+	if edition_poll > 0.988 then
+		card.edition = "e_polychrome"
+	elseif edition_poll > 0.96 then
+		card.edition = "e_holo"
+	elseif edition_poll > 0.92 then
+		card.edition = "e_foil"
+	else
+		card.edition = "none"
+	end
+
+	-- Seal check (80% chance of no seal, 20% chance of having one)
+	local has_seal_poll = pseudorandom(Brainstorm.pseudoseed("stdseal" .. ante_str .. seed_found))
+	if has_seal_poll <= 0.8 then
+		card.seal = "none"
+	else
+		-- Has seal - Red (0.75-1.0), Blue (0.5-0.75), Gold (0.25-0.5), Purple (0-0.25)
+		local seal_poll = pseudorandom(Brainstorm.pseudoseed("stdsealtype" .. ante_str .. seed_found))
+		if seal_poll > 0.75 then
+			card.seal = "Red"
+		elseif seal_poll > 0.5 then
+			card.seal = "Blue"
+		elseif seal_poll > 0.25 then
+			card.seal = "Gold"
+		else
+			card.seal = "Purple"
+		end
+	end
+
+	return card
+end
+
+-- Check if first standard pack contains polychrome gold red-seal King of Spades
+function Brainstorm.check_god_king(seed_found)
+	-- First, check if first pack is a standard pack
+	local first_pack = Brainstorm.simulate_first_pack(seed_found)
+
+	if not first_pack then
+		return false
+	end
+
+	-- Check if it's a standard pack and determine pack size
+	local pack_size = 0
+	if first_pack == "p_standard_normal_1" then
+		pack_size = 3
+	elseif first_pack == "p_standard_jumbo_1" or first_pack == "p_standard_mega_1" then
+		pack_size = 5
+	else
+		return false -- Not a standard pack
+	end
+
+	-- Simulate each card in the pack
+	for i = 1, pack_size do
+		local card = Brainstorm.simulate_standard_card(seed_found, 1, i)
+
+		-- Check if this card matches our criteria:
+		-- King of Spades + Gold enhancement + Polychrome edition + Red seal
+		local is_king_spades = (card.base == "King" and card.suit == "Spades")
+		local is_gold = (card.enhancement == "m_gold")
+		local is_polychrome = (card.edition == "e_polychrome")
+		local is_red_seal = (card.seal == "Red")
+
+		if is_king_spades and is_gold and is_polychrome and is_red_seal then
+			return true
+		end
+	end
+
+	return false
+end
+
+-- Simulate first pack generation
+function Brainstorm.simulate_first_pack(seed_found)
+	-- Use the same logic as searchPack filter
+	local cume, it, center = 0, 0, nil
+	for k, v in ipairs(G.P_CENTER_POOLS['Booster']) do
+		cume = cume + (v.weight or 1)
+	end
+	local poll = pseudorandom(Brainstorm.pseudoseed("shop_pack1" .. seed_found)) * cume
+	for k, v in ipairs(G.P_CENTER_POOLS['Booster']) do
+		it = it + (v.weight or 1)
+		if it >= poll and it - (v.weight or 1) <= poll then
+			center = v
+			break
+		end
+	end
+
+	if center then
+		return center.key
+	end
+	return nil
+end
+
 G.FUNCS.change_search_tag = function(x)
 	Brainstorm.SETTINGS.autoreroll.searchTagID = x.to_key
 	Brainstorm.SETTINGS.autoreroll.searchTag = Brainstorm.SearchTagList[x.to_val]
@@ -161,6 +309,16 @@ end
 
 G.FUNCS.toggle_blueprint_money_search = function(args)
 	Brainstorm.SETTINGS.autoreroll.searchBlueprintMoney = args.to_val
+	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+end
+
+G.FUNCS.toggle_legendary_search = function(args)
+	Brainstorm.SETTINGS.autoreroll.searchLegendary = args.to_val
+	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+end
+
+G.FUNCS.toggle_god_king_search = function(args)
+	Brainstorm.SETTINGS.autoreroll.searchGodKing = args.to_val
 	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 end
 
@@ -252,6 +410,18 @@ break end
 		-- Custom filter: Blueprint/Brainstorm + Money Joker in first 2 antes
 		if seed_found and Brainstorm.SETTINGS.autoreroll.searchBlueprintMoney then
 			if not Brainstorm.check_blueprint_money_combo(seed_found) then
+				seed_found = nil
+			end
+		end
+		-- Custom filter: Legendary joker in first 2 antes
+		if seed_found and Brainstorm.SETTINGS.autoreroll.searchLegendary then
+			if not Brainstorm.check_legendary_joker(seed_found) then
+				seed_found = nil
+			end
+		end
+		-- Custom filter: Polychrome Gold Red-Seal King of Spades in first standard pack
+		if seed_found and Brainstorm.SETTINGS.autoreroll.searchGodKing then
+			if not Brainstorm.check_god_king(seed_found) then
 				seed_found = nil
 			end
 		end

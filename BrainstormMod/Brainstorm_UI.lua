@@ -91,6 +91,22 @@ function create_tabs(args)
 								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 							end,
 						}),
+						create_toggle({
+							label = "Search Legendary Joker (Antes 1-2)",
+							ref_table = Brainstorm.SETTINGS.autoreroll,
+							ref_value = "searchLegendary",
+							callback = function(_set_toggle)
+								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+							end,
+						}),
+						create_toggle({
+							label = "Search Polychrome Gold Red-Seal King♠ (First Pack)",
+							ref_table = Brainstorm.SETTINGS.autoreroll,
+							ref_value = "searchGodKing",
+							callback = function(_set_toggle)
+								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+							end,
+						}),
 						create_option_cycle({
 							label = "AutoReroll Search Tag",
 							scale = 0.8,
