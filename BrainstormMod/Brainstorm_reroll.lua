@@ -36,7 +36,7 @@ function Brainstorm.simulate_shop_jokers(seed_found, ante)
 	for slot = 1, 4 do
 		-- Determine if this slot is a joker (vs tarot/planet/spectral)
 		-- Use "cdt" + ante as the seed string (Card_Type from Immolate)
-		local card_type_poll = pseudorandom(Brainstorm.pseudoseed("cdt" .. ante, seed_found))
+		local card_type_poll = pseudorandom(Brainstorm.pseudoseed("cdt" .. ante .. seed_found))
 
 		-- Shop instance rates: 20 for jokers, 4 for tarots, 4 for planets, 0 for playing cards, 0 for spectrals
 		-- Total rate = 28, so joker threshold is 20/28 ≈ 0.714
@@ -53,13 +53,13 @@ function Brainstorm.simulate_shop_jokers(seed_found, ante)
 end
 
 -- Get a shop joker for a given seed and ante
--- Matches Immolate's nextJoker function for ItemSource::Shop
+-- Uses weighted selection similar to booster pack generation
 function Brainstorm.get_shop_joker(seed_found, ante)
 	local ante_str = tostring(ante)
 
 	-- Determine rarity using "rarity" + ante + "sho" seed string
 	-- Common: 70%, Uncommon: 25%, Rare: 5%
-	local rarity_poll = pseudorandom(Brainstorm.pseudoseed("rarity" .. ante_str .. "sho", seed_found))
+	local rarity_poll = pseudorandom(Brainstorm.pseudoseed("rarity" .. ante_str .. "sho" .. seed_found))
 	local rarity_id
 	if rarity_poll > 0.95 then
 		rarity_id = 3 -- rare
@@ -69,28 +69,37 @@ function Brainstorm.get_shop_joker(seed_found, ante)
 		rarity_id = 1 -- common
 	end
 
-	-- Get joker from the appropriate rarity pool
 	-- Use Balatro's actual seed strings: "Joker1"=common, "Joker2"=uncommon, "Joker3"=rare
 	local seed_prefix = "Joker" .. rarity_id
 
-	-- Get the joker from G.P_CENTER_POOLS based on rarity
+	-- Use weighted selection on jokers (similar to booster pack code)
 	if G.P_CENTER_POOLS and G.P_CENTER_POOLS['Joker'] then
-		-- Filter jokers by rarity
-		local rarity_pool = {}
+		local cume, it, center = 0, 0, nil
+
+		-- Calculate cumulative weights for jokers matching the rarity
 		for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
-			if v.config and v.config.center and v.config.center.rarity == rarity_id then
-				table.insert(rarity_pool, v)
+			-- Check various possible rarity field locations
+			local joker_rarity = v.rarity or (v.config and v.config.rarity) or (v.config and v.config.center and v.config.center.rarity)
+			if joker_rarity == rarity_id then
+				cume = cume + (v.weight or 1)
 			end
 		end
 
-		if #rarity_pool > 0 then
-			-- Use pseudorandom to select from the rarity pool
-			-- Seed format: "JokerN" + "sho" + ante
-			local joker_poll = pseudorandom(Brainstorm.pseudoseed(seed_prefix .. "sho" .. ante_str, seed_found))
-			local idx = math.floor(joker_poll * #rarity_pool) + 1
-			idx = math.min(idx, #rarity_pool)
+		-- Select joker using cumulative weight method
+		local poll = pseudorandom(Brainstorm.pseudoseed(seed_prefix .. "sho" .. ante_str .. seed_found)) * cume
+		for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
+			local joker_rarity = v.rarity or (v.config and v.config.rarity) or (v.config and v.config.center and v.config.center.rarity)
+			if joker_rarity == rarity_id then
+				it = it + (v.weight or 1)
+				if it >= poll and it - (v.weight or 1) <= poll then
+					center = v
+					break
+				end
+			end
+		end
 
-			return rarity_pool[idx].key
+		if center then
+			return center.key
 		end
 	end
 
