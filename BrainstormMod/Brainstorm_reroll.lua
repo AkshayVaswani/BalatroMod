@@ -136,24 +136,33 @@ function Brainstorm.check_blueprint_money_combo(seed_found)
 	return has_blueprint and has_money_joker
 end
 
--- Check if a legendary joker exists in first 2 antes
-function Brainstorm.check_legendary_joker(seed_found)
+-- Check if Blueprint or Brainstorm exists in first 2 antes
+function Brainstorm.check_blueprint_brainstorm(seed_found)
 	-- Check both ante 1 and ante 2 shops
 	for ante = 1, 2 do
 		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
 
 		for _, joker_key in ipairs(jokers) do
-			-- Check if this joker is legendary (rarity 4)
-			if G.P_CENTER_POOLS and G.P_CENTER_POOLS['Joker'] then
-				for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
-					if v.key == joker_key then
-						local joker_rarity = v.rarity or (v.config and v.config.rarity) or (v.config and v.config.center and v.config.center.rarity)
-						if joker_rarity == 4 then
-							return true
-						end
-						break
-					end
-				end
+			-- Check for Blueprint or Brainstorm
+			if joker_key == "j_blueprint" or joker_key == "j_brainstorm" then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+-- Check if money-generating joker exists in first 2 antes
+function Brainstorm.check_money_joker(seed_found)
+	-- Check both ante 1 and ante 2 shops
+	for ante = 1, 2 do
+		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+
+		for _, joker_key in ipairs(jokers) do
+			-- Check for money generating joker
+			if Brainstorm.is_joker_in_list(joker_key, Brainstorm.MONEY_JOKERS) then
+				return true
 			end
 		end
 	end
@@ -312,8 +321,13 @@ G.FUNCS.toggle_blueprint_money_search = function(args)
 	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 end
 
-G.FUNCS.toggle_legendary_search = function(args)
-	Brainstorm.SETTINGS.autoreroll.searchLegendary = args.to_val
+G.FUNCS.toggle_blueprint_brainstorm_search = function(args)
+	Brainstorm.SETTINGS.autoreroll.searchBlueprintBrainstorm = args.to_val
+	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+end
+
+G.FUNCS.toggle_money_joker_search = function(args)
+	Brainstorm.SETTINGS.autoreroll.searchMoneyJoker = args.to_val
 	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 end
 
@@ -407,21 +421,39 @@ break end
 				seed_found = nil
 			end
 		end
-		-- Custom filter: Blueprint/Brainstorm + Money Joker in first 2 antes
+		-- Custom filter: Blueprint/Brainstorm + Money Joker combo (legacy - for backwards compatibility)
 		if seed_found and Brainstorm.SETTINGS.autoreroll.searchBlueprintMoney then
 			if not Brainstorm.check_blueprint_money_combo(seed_found) then
 				seed_found = nil
 			end
 		end
-		-- Custom filter: Legendary joker in first 2 antes
-		if seed_found and Brainstorm.SETTINGS.autoreroll.searchLegendary then
-			if not Brainstorm.check_legendary_joker(seed_found) then
+		-- Custom filter: Blueprint/Brainstorm (separate)
+		if seed_found and Brainstorm.SETTINGS.autoreroll.searchBlueprintBrainstorm then
+			local has_bp = Brainstorm.check_blueprint_brainstorm(seed_found)
+			if has_bp then
+				print("[Brainstorm] Found Blueprint/Brainstorm in seed: " .. seed_found)
+			end
+			if not has_bp then
+				seed_found = nil
+			end
+		end
+		-- Custom filter: Money Joker (separate)
+		if seed_found and Brainstorm.SETTINGS.autoreroll.searchMoneyJoker then
+			local has_money = Brainstorm.check_money_joker(seed_found)
+			if has_money then
+				print("[Brainstorm] Found Money joker in seed: " .. seed_found)
+			end
+			if not has_money then
 				seed_found = nil
 			end
 		end
 		-- Custom filter: Polychrome Gold Red-Seal King of Spades in first standard pack
 		if seed_found and Brainstorm.SETTINGS.autoreroll.searchGodKing then
-			if not Brainstorm.check_god_king(seed_found) then
+			local has_god_king = Brainstorm.check_god_king(seed_found)
+			if has_god_king then
+				print("[Brainstorm] Found God King card in seed: " .. seed_found)
+			end
+			if not has_god_king then
 				seed_found = nil
 			end
 		end

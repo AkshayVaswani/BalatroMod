@@ -84,17 +84,17 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Blueprint/Brainstorm + Money Joker (Antes 1-2)",
+							label = "Search Blueprint/Brainstorm (Antes 1-2)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
-							ref_value = "searchBlueprintMoney",
+							ref_value = "searchBlueprintBrainstorm",
 							callback = function(_set_toggle)
 								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 							end,
 						}),
 						create_toggle({
-							label = "Search Legendary Joker (Antes 1-2)",
+							label = "Search Money Joker (Antes 1-2)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
-							ref_value = "searchLegendary",
+							ref_value = "searchMoneyJoker",
 							callback = function(_set_toggle)
 								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 							end,

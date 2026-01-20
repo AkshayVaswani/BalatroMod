@@ -37,37 +37,20 @@ Brainstorm can automatically reroll for parameters as specified by the user.
 You can edit the Auto-Reroll parameters in the Brainstorm in-game settings page.
 > To Auto-Reroll:	Press `Ctrl + a`
 
-#### Custom Filter: Blueprint/Brainstorm + Money Joker
-A custom filter has been added that searches for seeds where you can obtain both:
-- **Blueprint** OR **Brainstorm** joker
-- **AND** one of these money-generating jokers:
-  - Mail-in Rebate
-  - Business Card
-  - Cloud 9
-  - Rocket
-  - Midas Mask
-  - Gift Card
-  - Reserved Parking
-  - Golden Joker
-  - Trading Card
+#### Custom Filters
 
-The filter checks the shop jokers in **Ante 1 and Ante 2** to find seeds where both types of jokers are available early in the run.
+All custom filters use exact RNG seed strings reverse-engineered from Balatro's code (based on the [Brainstorm-Rerolled](https://github.com/ABGamma/Brainstorm-Rerolled) Immolate C++ implementation), ensuring accurate prediction. Unlike the original Immolate DLL approach, this is implemented in pure Lua, making it **fully compatible with macOS**.
 
-**Implementation:** This filter uses the exact RNG seed strings reverse-engineered from Balatro's code (based on the [Brainstorm-Rerolled](https://github.com/ABGamma/Brainstorm-Rerolled) Immolate C++ implementation), ensuring accurate shop joker prediction. Unlike the original Immolate DLL approach, this is implemented in pure Lua, making it **fully compatible with macOS**.
+**Blueprint/Brainstorm Filter**
+- Searches for seeds where **Blueprint** OR **Brainstorm** joker appears in the shop during **Ante 1 or Ante 2**
+- Enable toggle: "Search Blueprint/Brainstorm (Antes 1-2)"
+- Logs to console when found
 
-To use this filter:
-1. Open the game settings
-2. Navigate to the "Brainstorm" tab
-3. Enable "Search Blueprint/Brainstorm + Money Joker (Antes 1-2)"
-4. Press `Ctrl + a` to start auto-rerolling
-
-The mod will automatically search for seeds meeting these criteria and start a run when a matching seed is found.
-
-#### Additional Custom Filters
-
-**Legendary Joker Filter**
-- Searches for seeds where a legendary joker (Chicot, Perkeo, Triboulet, or Yorick) appears in the shop during **Ante 1 or Ante 2**
-- Enable toggle: "Search Legendary Joker (Antes 1-2)"
+**Money Joker Filter**
+- Searches for seeds where a money-generating joker appears in the shop during **Ante 1 or Ante 2**
+- Money jokers: Mail-in Rebate, Business Card, Cloud 9, Rocket, Midas Mask, Gift Card, Reserved Parking, Golden Joker, Trading Card
+- Enable toggle: "Search Money Joker (Antes 1-2)"
+- Logs to console when found
 
 **God King Filter**
 - Searches for seeds where the first booster pack is a Standard Pack containing a very specific card:
@@ -81,5 +64,13 @@ The mod will automatically search for seeds meeting these criteria and start a r
 **Using Multiple Filters Simultaneously**
 
 All custom filters can be used **together** - the mod will only find seeds that match **ALL enabled filters**. For example:
-- Enable both "Blueprint/Money" and "Legendary" to find seeds with all three joker types
-- Enable all three filters to find seeds with the perfect combination of jokers AND the god king card
+- Enable both "Blueprint/Brainstorm" and "Money Joker" to find seeds with both joker types
+- Enable all three filters to find seeds with Blueprint/Brainstorm, Money Joker, AND the god king card
+- Filters are logged to console when they match, helping you understand which criteria are being met
+
+**How to Use:**
+1. Open the game settings
+2. Navigate to the "Brainstorm" tab
+3. Enable any combination of filters
+4. Press `Ctrl + a` to start auto-rerolling
+5. Check your console output to see filter matches in real-time (prints like "[Brainstorm] Found Blueprint/Brainstorm in seed: ABCD1234")
