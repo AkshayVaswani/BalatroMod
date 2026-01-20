@@ -53,6 +53,8 @@ A custom filter has been added that searches for seeds where you can obtain both
 
 The filter checks the shop jokers in **Ante 1 and Ante 2** to find seeds where both types of jokers are available early in the run.
 
+**Implementation:** This filter uses the exact RNG seed strings reverse-engineered from Balatro's code (based on the [Brainstorm-Rerolled](https://github.com/ABGamma/Brainstorm-Rerolled) Immolate C++ implementation), ensuring accurate shop joker prediction. Unlike the original Immolate DLL approach, this is implemented in pure Lua, making it **fully compatible with macOS**.
+
 To use this filter:
 1. Open the game settings
 2. Navigate to the "Brainstorm" tab

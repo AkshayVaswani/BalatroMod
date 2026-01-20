@@ -26,40 +26,75 @@ function Brainstorm.is_joker_in_list(joker_key, joker_list)
 	return false
 end
 
--- Simulate joker generation for a given ante
--- Based on Balatro's shop joker generation logic
+-- Simulate shop joker generation for a given ante
+-- Based on Immolate's reverse-engineered Balatro shop logic
+-- Uses exact RNG seed strings from Balatro v1.0.1c
 function Brainstorm.simulate_shop_jokers(seed_found, ante)
 	local jokers_found = {}
-	local num_jokers = 2 -- Standard shops have 2 jokers initially
 
-	-- Generate jokers for this ante's shop
-	for i = 1, num_jokers do
-		local cume, it, center = 0, 0, nil
+	-- Simulate up to 4 shop slots (standard shops have 2 jokers, but we check more to be thorough)
+	for slot = 1, 4 do
+		-- Determine if this slot is a joker (vs tarot/planet/spectral)
+		-- Use "cdt" + ante as the seed string (Card_Type from Immolate)
+		local card_type_poll = pseudorandom(Brainstorm.pseudoseed("cdt" .. ante, seed_found))
 
-		-- Calculate cumulative weights for joker pool
-		if G.P_CENTER_POOLS and G.P_CENTER_POOLS['Joker'] then
-			for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
-				cume = cume + (v.weight or 1)
-			end
-
-			-- Use pseudorandom to select a joker
-			local poll = pseudorandom(Brainstorm.pseudoseed("shop_joker" .. ante .. "_" .. i .. seed_found)) * cume
-
-			for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
-				it = it + (v.weight or 1)
-				if it >= poll and it - (v.weight or 1) <= poll then
-					center = v
-					break
-				end
-			end
-
-			if center then
-				table.insert(jokers_found, center.key)
+		-- Shop instance rates: 20 for jokers, 4 for tarots, 4 for planets, 0 for playing cards, 0 for spectrals
+		-- Total rate = 28, so joker threshold is 20/28 ≈ 0.714
+		if card_type_poll < 0.714 then
+			-- This slot contains a joker
+			local joker_key = Brainstorm.get_shop_joker(seed_found, ante)
+			if joker_key then
+				table.insert(jokers_found, joker_key)
 			end
 		end
 	end
 
 	return jokers_found
+end
+
+-- Get a shop joker for a given seed and ante
+-- Matches Immolate's nextJoker function for ItemSource::Shop
+function Brainstorm.get_shop_joker(seed_found, ante)
+	local ante_str = tostring(ante)
+
+	-- Determine rarity using "rarity" + ante + "sho" seed string
+	-- Common: 70%, Uncommon: 25%, Rare: 5%
+	local rarity_poll = pseudorandom(Brainstorm.pseudoseed("rarity" .. ante_str .. "sho", seed_found))
+	local rarity_id
+	if rarity_poll > 0.95 then
+		rarity_id = 3 -- rare
+	elseif rarity_poll > 0.7 then
+		rarity_id = 2 -- uncommon
+	else
+		rarity_id = 1 -- common
+	end
+
+	-- Get joker from the appropriate rarity pool
+	-- Use Balatro's actual seed strings: "Joker1"=common, "Joker2"=uncommon, "Joker3"=rare
+	local seed_prefix = "Joker" .. rarity_id
+
+	-- Get the joker from G.P_CENTER_POOLS based on rarity
+	if G.P_CENTER_POOLS and G.P_CENTER_POOLS['Joker'] then
+		-- Filter jokers by rarity
+		local rarity_pool = {}
+		for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
+			if v.config and v.config.center and v.config.center.rarity == rarity_id then
+				table.insert(rarity_pool, v)
+			end
+		end
+
+		if #rarity_pool > 0 then
+			-- Use pseudorandom to select from the rarity pool
+			-- Seed format: "JokerN" + "sho" + ante
+			local joker_poll = pseudorandom(Brainstorm.pseudoseed(seed_prefix .. "sho" .. ante_str, seed_found))
+			local idx = math.floor(joker_poll * #rarity_pool) + 1
+			idx = math.min(idx, #rarity_pool)
+
+			return rarity_pool[idx].key
+		end
+	end
+
+	return nil
 end
 
 -- Check if Blueprint/Brainstorm + money joker combo exists in first 2 antes
