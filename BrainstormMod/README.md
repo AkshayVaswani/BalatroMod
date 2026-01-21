@@ -42,31 +42,34 @@ You can edit the Auto-Reroll parameters in the Brainstorm in-game settings page.
 All custom filters use exact RNG seed strings reverse-engineered from Balatro's code (based on the [Brainstorm-Rerolled](https://github.com/ABGamma/Brainstorm-Rerolled) Immolate C++ implementation), ensuring accurate prediction. Unlike the original Immolate DLL approach, this is implemented in pure Lua, making it **fully compatible with macOS**.
 
 **Blueprint/Brainstorm Filter**
-- Searches for seeds where **Blueprint** OR **Brainstorm** joker appears in the **initial shop** (first 2 slots, no rerolls) during **Ante 1 or Ante 2**
-- Enable toggle: "Search Blueprint/Brainstorm (Antes 1-2)"
+- Searches for seeds where **Blueprint** OR **Brainstorm** joker appears in **buffoon packs** during **Ante 1**
+- Checks all buffoon packs (Normal, Jumbo, Mega) that can appear in the shop
+- Enable toggle: "Search Blueprint/Brainstorm (Ante 1, Buffoon Packs)"
 - Logs to console when found
 
 **Money Joker Filter**
-- Searches for seeds where a money-generating joker appears in the **initial shop** (first 2 slots, no rerolls) during **Ante 1 or Ante 2**
+- Searches for seeds where a money-generating joker appears in the **initial shop** (first 2 slots, no rerolls) during **Ante 1**
 - Money jokers: Mail-in Rebate, Business Card, Cloud 9, Rocket, Midas Mask, Gift Card, Reserved Parking, Golden Joker, Trading Card
-- Enable toggle: "Search Money Joker (Antes 1-2)"
+- Enable toggle: "Search Money Joker (Ante 1, Shop Only)"
 - Logs to console when found
 
 **Negative Blueprint/Brainstorm Filter**
-- Searches for seeds where **Negative edition Blueprint** OR **Brainstorm** joker appears in the **initial shop** during **Ante 1 or Ante 2**
+- Searches for seeds where **Negative edition Blueprint** OR **Brainstorm** joker appears in **buffoon packs** during **Ante 1**
 - Negative edition gives +1 joker slot
-- Enable toggle: "Search Negative Blueprint/Brainstorm (Antes 1-2)"
+- Checks all buffoon packs (Normal, Jumbo, Mega) that can appear in the shop
+- Enable toggle: "Search Negative Blueprint/Brainstorm (Ante 1, Buffoon Packs)"
 - Logs to console when found
 
 **God King Filter**
-- Searches for seeds where the first booster pack is a Standard Pack containing a very specific card:
+- Searches for seeds where **any pack** in **Ante 1** is a Standard Pack containing a very specific card:
   - **Any face card** (King, Queen, or Jack - no Aces)
   - **Any suit** (Spades, Hearts, Diamonds, or Clubs)
   - **Gold OR Steel enhancement** (Gold multiplies card value, Steel gives +50 chips)
   - **Polychrome edition** (+mult and Xmult bonuses)
   - **Red seal** (retrigger card effect)
 - This combination is extremely rare and powerful for early game scoring
-- Enable toggle: "Search Polychrome Gold/Steel Red-Seal Face Card (First Pack)"
+- Checks multiple pack iterations (including rerolled packs in shop)
+- Enable toggle: "Search Polychrome Gold/Steel Red-Seal Face (Ante 1, Any Pack)"
 - Logs to console when found
 
 **Using Multiple Filters Simultaneously**

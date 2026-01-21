@@ -84,7 +84,7 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Blueprint/Brainstorm (Antes 1-2)",
+							label = "Search Blueprint/Brainstorm (Ante 1, Buffoon Packs)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchBlueprintBrainstorm",
 							callback = function(_set_toggle)
@@ -92,7 +92,7 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Money Joker (Antes 1-2)",
+							label = "Search Money Joker (Ante 1, Shop Only)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchMoneyJoker",
 							callback = function(_set_toggle)
@@ -100,7 +100,7 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Polychrome Gold/Steel Red-Seal Face Card (First Pack)",
+							label = "Search Polychrome Gold/Steel Red-Seal Face (Ante 1, Any Pack)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchGodKing",
 							callback = function(_set_toggle)
@@ -108,7 +108,7 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Negative Blueprint/Brainstorm (Antes 1-2)",
+							label = "Search Negative Blueprint/Brainstorm (Ante 1, Buffoon Packs)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchNegativeBlueprint",
 							callback = function(_set_toggle)

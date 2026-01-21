@@ -120,85 +120,159 @@ function Brainstorm.get_shop_joker(seed_found, ante)
 	return nil
 end
 
--- Check if Blueprint/Brainstorm + money joker combo exists in first 2 antes
+-- Check if Blueprint/Brainstorm + money joker combo exists in buffoon packs in ante 1
 function Brainstorm.check_blueprint_money_combo(seed_found)
 	local has_blueprint = false
 	local has_money_joker = false
 
-	-- Check both ante 1 and ante 2 shops
-	for ante = 1, 2 do
-		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+	-- Check buffoon packs in ante 1
+	local jokers = Brainstorm.simulate_buffoon_pack_jokers(seed_found, 1)
 
-		for _, joker_data in ipairs(jokers) do
-			-- Check for Blueprint or Brainstorm
-			if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
-				has_blueprint = true
-			end
-
-			-- Check for money generating joker
-			if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
-				has_money_joker = true
-			end
+	for _, joker_data in ipairs(jokers) do
+		-- Check for Blueprint or Brainstorm
+		if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
+			has_blueprint = true
 		end
 
-		-- Early exit if we found both
-		if has_blueprint and has_money_joker then
-			return true
+		-- Check for money generating joker
+		if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
+			has_money_joker = true
 		end
 	end
 
 	return has_blueprint and has_money_joker
 end
 
--- Check if Blueprint or Brainstorm exists in first 2 antes
+-- Check if Blueprint or Brainstorm exists in buffoon packs in ante 1
 function Brainstorm.check_blueprint_brainstorm(seed_found)
-	-- Check both ante 1 and ante 2 shops
-	for ante = 1, 2 do
-		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+	-- Check buffoon packs in ante 1 only
+	local jokers = Brainstorm.simulate_buffoon_pack_jokers(seed_found, 1)
 
-		for _, joker_data in ipairs(jokers) do
-			-- Check for Blueprint or Brainstorm
-			if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
-				return true
-			end
+	for _, joker_data in ipairs(jokers) do
+		-- Check for Blueprint or Brainstorm
+		if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
+			return true
 		end
 	end
 
 	return false
 end
 
--- Check if money-generating joker exists in first 2 antes
+-- Check if money-generating joker exists in ante 1 shop
 function Brainstorm.check_money_joker(seed_found)
-	-- Check both ante 1 and ante 2 shops
-	for ante = 1, 2 do
-		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+	-- Check ante 1 shop only
+	local jokers = Brainstorm.simulate_shop_jokers(seed_found, 1)
 
-		for _, joker_data in ipairs(jokers) do
-			-- Check for money generating joker
-			if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
-				return true
-			end
+	for _, joker_data in ipairs(jokers) do
+		-- Check for money generating joker
+		if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
+			return true
 		end
 	end
 
 	return false
 end
 
--- Check if negative Blueprint or Brainstorm exists in first 2 antes
+-- Check if negative Blueprint or Brainstorm exists in buffoon packs in ante 1
 function Brainstorm.check_negative_blueprint_brainstorm(seed_found)
-	-- Check both ante 1 and ante 2 shops
-	for ante = 1, 2 do
-		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+	-- Check buffoon packs in ante 1 only
+	local jokers = Brainstorm.simulate_buffoon_pack_jokers(seed_found, 1)
 
-		for _, joker_data in ipairs(jokers) do
-			-- Check for Blueprint or Brainstorm with negative edition
-			if (joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm") and joker_data.edition == "e_negative" then
-				return true
-			end
+	for _, joker_data in ipairs(jokers) do
+		-- Check for Blueprint or Brainstorm with negative edition
+		if (joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm") and joker_data.edition == "e_negative" then
+			return true
 		end
 	end
 
 	return false
+end
+
+-- Simulate buffoon pack jokers for a given ante
+-- Checks all possible buffoon packs that could appear
+function Brainstorm.simulate_buffoon_pack_jokers(seed_found, ante)
+	local all_jokers = {}
+
+	-- Check multiple pack iterations (since packs can be rerolled in shop)
+	for pack_iter = 1, 4 do
+		local pack = Brainstorm.simulate_pack(seed_found, ante, pack_iter)
+
+		if pack and (pack.key == "p_buffoon_normal_1" or pack.key == "p_buffoon_jumbo_1" or pack.key == "p_buffoon_mega_1") then
+			-- Simulate jokers in this buffoon pack
+			local pack_size = pack.size or 2
+			for i = 1, pack_size do
+				local joker_data = Brainstorm.get_buffoon_pack_joker(seed_found, ante, i)
+				if joker_data then
+					table.insert(all_jokers, joker_data)
+				end
+			end
+		end
+	end
+
+	return all_jokers
+end
+
+-- Get a joker from a buffoon pack
+function Brainstorm.get_buffoon_pack_joker(seed_found, ante, card_num)
+	local ante_str = tostring(ante)
+
+	-- Determine rarity (buffoon packs can have any rarity)
+	local rarity_poll = pseudorandom(Brainstorm.pseudoseed("rarity" .. ante_str .. "buf" .. seed_found))
+	local rarity_id
+	if rarity_poll > 0.95 then
+		rarity_id = 3 -- rare
+	elseif rarity_poll > 0.7 then
+		rarity_id = 2 -- uncommon
+	else
+		rarity_id = 1 -- common
+	end
+
+	-- Determine edition
+	local edition_poll = pseudorandom(Brainstorm.pseudoseed("edi" .. "buf" .. ante_str .. seed_found))
+	local edition = "none"
+	if edition_poll > 0.997 then
+		edition = "e_negative"
+	elseif edition_poll > 0.994 then
+		edition = "e_polychrome"
+	elseif edition_poll > 0.98 then
+		edition = "e_holo"
+	elseif edition_poll > 0.96 then
+		edition = "e_foil"
+	end
+
+	-- Select joker
+	local seed_prefix = "Joker" .. rarity_id
+
+	if G.P_CENTER_POOLS and G.P_CENTER_POOLS['Joker'] then
+		local cume, it, center = 0, 0, nil
+
+		-- Calculate cumulative weights for jokers matching the rarity
+		for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
+			local joker_rarity = v.rarity or (v.config and v.config.rarity) or (v.config and v.config.center and v.config.center.rarity)
+			if joker_rarity == rarity_id then
+				cume = cume + (v.weight or 1)
+			end
+		end
+
+		-- Select joker using cumulative weight method
+		local poll = pseudorandom(Brainstorm.pseudoseed(seed_prefix .. "buf" .. ante_str .. seed_found)) * cume
+		for k, v in ipairs(G.P_CENTER_POOLS['Joker']) do
+			local joker_rarity = v.rarity or (v.config and v.config.rarity) or (v.config and v.config.center and v.config.center.rarity)
+			if joker_rarity == rarity_id then
+				it = it + (v.weight or 1)
+				if it >= poll and it - (v.weight or 1) <= poll then
+					center = v
+					break
+				end
+			end
+		end
+
+		if center then
+			return {key = center.key, edition = edition}
+		end
+	end
+
+	return nil
 end
 
 -- Simulate a standard pack card generation
@@ -264,52 +338,81 @@ function Brainstorm.simulate_standard_card(seed_found, ante, card_index)
 	return card
 end
 
--- Check if first standard pack contains polychrome gold/steel red-seal face card
+-- Check if any pack in ante 1 contains polychrome gold/steel red-seal face card
 function Brainstorm.check_god_king(seed_found)
-	-- First, check if first pack is a standard pack
-	local first_pack = Brainstorm.simulate_first_pack(seed_found)
+	-- Check multiple pack iterations in ante 1 (packs can be rerolled in shop)
+	for pack_iter = 1, 4 do
+		local pack = Brainstorm.simulate_pack(seed_found, 1, pack_iter)
 
-	if not first_pack then
-		return false
-	end
+		if pack and (pack.key == "p_standard_normal_1" or pack.key == "p_standard_jumbo_1" or pack.key == "p_standard_mega_1") then
+			-- This is a standard pack, check cards in it
+			local pack_size = pack.size or 3
 
-	-- Check if it's a standard pack and determine pack size
-	local pack_size = 0
-	if first_pack == "p_standard_normal_1" then
-		pack_size = 3
-	elseif first_pack == "p_standard_jumbo_1" or first_pack == "p_standard_mega_1" then
-		pack_size = 5
-	else
-		return false -- Not a standard pack
-	end
+			for i = 1, pack_size do
+				local card = Brainstorm.simulate_standard_card(seed_found, 1, i)
 
-	-- Simulate each card in the pack
-	for i = 1, pack_size do
-		local card = Brainstorm.simulate_standard_card(seed_found, 1, i)
+				-- Check if this card matches our criteria:
+				-- Any face card (K, Q, J) + Any suit + Gold or Steel enhancement + Polychrome edition + Red seal
+				local is_face_card = (card.base == "King" or card.base == "Queen" or card.base == "Jack")
+				local is_gold_or_steel = (card.enhancement == "m_gold" or card.enhancement == "m_steel")
+				local is_polychrome = (card.edition == "e_polychrome")
+				local is_red_seal = (card.seal == "Red")
 
-		-- Check if this card matches our criteria:
-		-- Any face card (K, Q, J) + Any suit + Gold or Steel enhancement + Polychrome edition + Red seal
-		local is_face_card = (card.base == "King" or card.base == "Queen" or card.base == "Jack")
-		local is_gold_or_steel = (card.enhancement == "m_gold" or card.enhancement == "m_steel")
-		local is_polychrome = (card.edition == "e_polychrome")
-		local is_red_seal = (card.seal == "Red")
-
-		if is_face_card and is_gold_or_steel and is_polychrome and is_red_seal then
-			return true
+				if is_face_card and is_gold_or_steel and is_polychrome and is_red_seal then
+					return true
+				end
+			end
 		end
 	end
 
 	return false
 end
 
--- Simulate first pack generation
-function Brainstorm.simulate_first_pack(seed_found)
+-- Helper function to get default pack size based on pack key
+function Brainstorm.get_pack_size(pack_key)
+	-- Default pack sizes for different pack types
+	local pack_sizes = {
+		-- Arcana packs
+		p_arcana_normal_1 = 3,
+		p_arcana_jumbo_1 = 5,
+		p_arcana_mega_1 = 5,
+		-- Celestial packs
+		p_celestial_normal_1 = 3,
+		p_celestial_jumbo_1 = 5,
+		p_celestial_mega_1 = 5,
+		-- Standard packs
+		p_standard_normal_1 = 3,
+		p_standard_jumbo_1 = 5,
+		p_standard_mega_1 = 5,
+		-- Buffoon packs
+		p_buffoon_normal_1 = 2,
+		p_buffoon_jumbo_1 = 4,
+		p_buffoon_mega_1 = 4,
+		-- Spectral packs
+		p_spectral_normal_1 = 2,
+		p_spectral_jumbo_1 = 4,
+		p_spectral_mega_1 = 4,
+	}
+	return pack_sizes[pack_key] or 2
+end
+
+-- Simulate pack generation for a given iteration
+-- pack_iteration: 1 for first pack, 2-4 for subsequent rerolls
+function Brainstorm.simulate_pack(seed_found, ante, pack_iteration)
+	if not G.P_CENTER_POOLS or not G.P_CENTER_POOLS['Booster'] then
+		return nil
+	end
+
 	-- Use the same logic as searchPack filter
 	local cume, it, center = 0, 0, nil
 	for k, v in ipairs(G.P_CENTER_POOLS['Booster']) do
 		cume = cume + (v.weight or 1)
 	end
-	local poll = pseudorandom(Brainstorm.pseudoseed("shop_pack1" .. seed_found)) * cume
+
+	-- Incorporate pack iteration into seed for different rerolls
+	local pack_seed = "shop_pack" .. pack_iteration .. seed_found
+	local poll = pseudorandom(Brainstorm.pseudoseed(pack_seed)) * cume
+
 	for k, v in ipairs(G.P_CENTER_POOLS['Booster']) do
 		it = it + (v.weight or 1)
 		if it >= poll and it - (v.weight or 1) <= poll then
@@ -319,9 +422,16 @@ function Brainstorm.simulate_first_pack(seed_found)
 	end
 
 	if center then
-		return center.key
+		local size = center.config and center.config.choose or Brainstorm.get_pack_size(center.key)
+		return {key = center.key, size = size}
 	end
 	return nil
+end
+
+-- Simulate first pack generation (legacy function for backwards compatibility)
+function Brainstorm.simulate_first_pack(seed_found)
+	local pack = Brainstorm.simulate_pack(seed_found, 1, 1)
+	return pack and pack.key or nil
 end
 
 G.FUNCS.change_search_tag = function(x)
