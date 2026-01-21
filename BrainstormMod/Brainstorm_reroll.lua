@@ -143,45 +143,76 @@ function Brainstorm.check_blueprint_money_combo(seed_found)
 	return has_blueprint and has_money_joker
 end
 
--- Check if Blueprint or Brainstorm exists in buffoon packs in ante 1
-function Brainstorm.check_blueprint_brainstorm(seed_found)
-	-- Check buffoon packs in ante 1 only
-	local jokers = Brainstorm.simulate_buffoon_pack_jokers(seed_found, 1)
+-- Check if Blueprint or Brainstorm exists in shops OR buffoon packs up to max_ante
+function Brainstorm.check_blueprint_brainstorm(seed_found, max_ante)
+	max_ante = max_ante or 1
 
-	for _, joker_data in ipairs(jokers) do
-		-- Check for Blueprint or Brainstorm
-		if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
-			return true
+	-- Check each ante up to max_ante
+	for ante = 1, max_ante do
+		-- Check shop jokers
+		local shop_jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+		for _, joker_data in ipairs(shop_jokers) do
+			if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
+				print("[Brainstorm] Found Blueprint/Brainstorm in ante " .. ante .. " shop for seed: " .. seed_found)
+				return true
+			end
+		end
+
+		-- Check buffoon packs
+		local pack_jokers = Brainstorm.simulate_buffoon_pack_jokers(seed_found, ante)
+		for _, joker_data in ipairs(pack_jokers) do
+			if joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm" then
+				print("[Brainstorm] Found Blueprint/Brainstorm in ante " .. ante .. " buffoon pack for seed: " .. seed_found)
+				return true
+			end
 		end
 	end
 
 	return false
 end
 
--- Check if money-generating joker exists in ante 1 shop
-function Brainstorm.check_money_joker(seed_found)
-	-- Check ante 1 shop only
-	local jokers = Brainstorm.simulate_shop_jokers(seed_found, 1)
+-- Check if money-generating joker exists in shop up to max_ante
+function Brainstorm.check_money_joker(seed_found, max_ante)
+	max_ante = max_ante or 1
 
-	for _, joker_data in ipairs(jokers) do
-		-- Check for money generating joker
-		if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
-			return true
+	-- Check each ante up to max_ante
+	for ante = 1, max_ante do
+		local jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+
+		for _, joker_data in ipairs(jokers) do
+			-- Check for money generating joker
+			if Brainstorm.is_joker_in_list(joker_data.key, Brainstorm.MONEY_JOKERS) then
+				print("[Brainstorm] Found Money joker in ante " .. ante .. " shop for seed: " .. seed_found)
+				return true
+			end
 		end
 	end
 
 	return false
 end
 
--- Check if negative Blueprint or Brainstorm exists in buffoon packs in ante 1
-function Brainstorm.check_negative_blueprint_brainstorm(seed_found)
-	-- Check buffoon packs in ante 1 only
-	local jokers = Brainstorm.simulate_buffoon_pack_jokers(seed_found, 1)
+-- Check if negative Blueprint or Brainstorm exists in shops OR buffoon packs up to max_ante
+function Brainstorm.check_negative_blueprint_brainstorm(seed_found, max_ante)
+	max_ante = max_ante or 1
 
-	for _, joker_data in ipairs(jokers) do
-		-- Check for Blueprint or Brainstorm with negative edition
-		if (joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm") and joker_data.edition == "e_negative" then
-			return true
+	-- Check each ante up to max_ante
+	for ante = 1, max_ante do
+		-- Check shop jokers
+		local shop_jokers = Brainstorm.simulate_shop_jokers(seed_found, ante)
+		for _, joker_data in ipairs(shop_jokers) do
+			if (joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm") and joker_data.edition == "e_negative" then
+				print("[Brainstorm] Found Negative Blueprint/Brainstorm in ante " .. ante .. " shop for seed: " .. seed_found)
+				return true
+			end
+		end
+
+		-- Check buffoon packs
+		local pack_jokers = Brainstorm.simulate_buffoon_pack_jokers(seed_found, ante)
+		for _, joker_data in ipairs(pack_jokers) do
+			if (joker_data.key == "j_blueprint" or joker_data.key == "j_brainstorm") and joker_data.edition == "e_negative" then
+				print("[Brainstorm] Found Negative Blueprint/Brainstorm in ante " .. ante .. " buffoon pack for seed: " .. seed_found)
+				return true
+			end
 		end
 	end
 
@@ -482,6 +513,24 @@ G.FUNCS.toggle_negative_blueprint_search = function(args)
 	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 end
 
+G.FUNCS.change_blueprint_brainstorm_max_ante = function(x)
+	Brainstorm.SETTINGS.autoreroll.searchBlueprintBrainstormMaxAnteID = x.to_key
+	Brainstorm.SETTINGS.autoreroll.searchBlueprintBrainstormMaxAnte = x.to_val
+	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+end
+
+G.FUNCS.change_money_joker_max_ante = function(x)
+	Brainstorm.SETTINGS.autoreroll.searchMoneyJokerMaxAnteID = x.to_key
+	Brainstorm.SETTINGS.autoreroll.searchMoneyJokerMaxAnte = x.to_val
+	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+end
+
+G.FUNCS.change_negative_blueprint_max_ante = function(x)
+	Brainstorm.SETTINGS.autoreroll.searchNegativeBlueprintMaxAnteID = x.to_key
+	Brainstorm.SETTINGS.autoreroll.searchNegativeBlueprintMaxAnte = x.to_val
+	nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
+end
+
 Brainstorm.AUTOREROLL.autoRerollActive = false
 Brainstorm.AUTOREROLL.rerollInterval = 0.01 -- Time interval between rerolls (in seconds)
 Brainstorm.AUTOREROLL.rerollTimer = 0
@@ -575,20 +624,16 @@ break end
 		end
 		-- Custom filter: Blueprint/Brainstorm (separate)
 		if seed_found and Brainstorm.SETTINGS.autoreroll.searchBlueprintBrainstorm then
-			local has_bp = Brainstorm.check_blueprint_brainstorm(seed_found)
-			if has_bp then
-				print("[Brainstorm] Found Blueprint/Brainstorm in seed: " .. seed_found)
-			end
+			local max_ante = Brainstorm.SETTINGS.autoreroll.searchBlueprintBrainstormMaxAnte or 1
+			local has_bp = Brainstorm.check_blueprint_brainstorm(seed_found, max_ante)
 			if not has_bp then
 				seed_found = nil
 			end
 		end
 		-- Custom filter: Money Joker (separate)
 		if seed_found and Brainstorm.SETTINGS.autoreroll.searchMoneyJoker then
-			local has_money = Brainstorm.check_money_joker(seed_found)
-			if has_money then
-				print("[Brainstorm] Found Money joker in seed: " .. seed_found)
-			end
+			local max_ante = Brainstorm.SETTINGS.autoreroll.searchMoneyJokerMaxAnte or 1
+			local has_money = Brainstorm.check_money_joker(seed_found, max_ante)
 			if not has_money then
 				seed_found = nil
 			end
@@ -603,12 +648,10 @@ break end
 				seed_found = nil
 			end
 		end
-		-- Custom filter: Negative Blueprint/Brainstorm in first 2 antes
+		-- Custom filter: Negative Blueprint/Brainstorm
 		if seed_found and Brainstorm.SETTINGS.autoreroll.searchNegativeBlueprint then
-			local has_negative = Brainstorm.check_negative_blueprint_brainstorm(seed_found)
-			if has_negative then
-				print("[Brainstorm] Found Negative Blueprint/Brainstorm in seed: " .. seed_found)
-			end
+			local max_ante = Brainstorm.SETTINGS.autoreroll.searchNegativeBlueprintMaxAnte or 1
+			local has_negative = Brainstorm.check_negative_blueprint_brainstorm(seed_found, max_ante)
 			if not has_negative then
 				seed_found = nil
 			end

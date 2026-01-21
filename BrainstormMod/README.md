@@ -42,23 +42,33 @@ You can edit the Auto-Reroll parameters in the Brainstorm in-game settings page.
 All custom filters use exact RNG seed strings reverse-engineered from Balatro's code (based on the [Brainstorm-Rerolled](https://github.com/ABGamma/Brainstorm-Rerolled) Immolate C++ implementation), ensuring accurate prediction. Unlike the original Immolate DLL approach, this is implemented in pure Lua, making it **fully compatible with macOS**.
 
 **Blueprint/Brainstorm Filter**
-- Searches for seeds where **Blueprint** OR **Brainstorm** joker appears in **buffoon packs** during **Ante 1**
-- Checks all buffoon packs (Normal, Jumbo, Mega) that can appear in the shop
-- Enable toggle: "Search Blueprint/Brainstorm (Ante 1, Buffoon Packs)"
-- Logs to console when found
+- Searches for seeds where **Blueprint** OR **Brainstorm** joker appears in **shops OR buffoon packs**
+- Checks both:
+  - Initial shop slots (first 2 slots, no rerolls)
+  - Buffoon packs (Normal, Jumbo, Mega) that can appear
+- **Configurable Max Ante** (1-8): Search up to the specified ante (e.g., "in or before ante 6")
+- Enable toggle: "Search Blueprint/Brainstorm (Shop + Packs)"
+- Configure max ante: "Max Ante for Blueprint/Brainstorm" dropdown
+- Logs to console when found, including which ante and location (shop/pack)
 
 **Money Joker Filter**
-- Searches for seeds where a money-generating joker appears in the **initial shop** (first 2 slots, no rerolls) during **Ante 1**
+- Searches for seeds where a money-generating joker appears in the **initial shop** (first 2 slots, no rerolls)
 - Money jokers: Mail-in Rebate, Business Card, Cloud 9, Rocket, Midas Mask, Gift Card, Reserved Parking, Golden Joker, Trading Card
-- Enable toggle: "Search Money Joker (Ante 1, Shop Only)"
-- Logs to console when found
+- **Configurable Max Ante** (1-8): Search up to the specified ante (e.g., "in or before ante 2")
+- Enable toggle: "Search Money Joker (Shop Only)"
+- Configure max ante: "Max Ante for Money Joker" dropdown
+- Logs to console when found, including which ante
 
 **Negative Blueprint/Brainstorm Filter**
-- Searches for seeds where **Negative edition Blueprint** OR **Brainstorm** joker appears in **buffoon packs** during **Ante 1**
+- Searches for seeds where **Negative edition Blueprint** OR **Brainstorm** joker appears in **shops OR buffoon packs**
 - Negative edition gives +1 joker slot
-- Checks all buffoon packs (Normal, Jumbo, Mega) that can appear in the shop
-- Enable toggle: "Search Negative Blueprint/Brainstorm (Ante 1, Buffoon Packs)"
-- Logs to console when found
+- Checks both:
+  - Initial shop slots (first 2 slots, no rerolls)
+  - Buffoon packs (Normal, Jumbo, Mega) that can appear
+- **Configurable Max Ante** (1-8): Search up to the specified ante (e.g., "in or before ante 6")
+- Enable toggle: "Search Negative Blueprint/Brainstorm (Shop + Packs)"
+- Configure max ante: "Max Ante for Negative Blueprint/Brainstorm" dropdown
+- Logs to console when found, including which ante and location (shop/pack)
 
 **God King Filter**
 - Searches for seeds where **any pack** in **Ante 1** is a Standard Pack containing a very specific card:
@@ -76,8 +86,9 @@ All custom filters use exact RNG seed strings reverse-engineered from Balatro's 
 
 All custom filters can be used **together** - the mod will only find seeds that match **ALL enabled filters**. For example:
 - Enable both "Blueprint/Brainstorm" and "Money Joker" to find seeds with both joker types
-- Enable all three filters to find seeds with Blueprint/Brainstorm, Money Joker, AND the god king card
-- Filters are logged to console when they match, helping you understand which criteria are being met
+- Enable all filters to find seeds with Blueprint/Brainstorm, Money Joker, Negative Blueprint/Brainstorm, AND the god king card
+- Each filter can have different max ante settings (e.g., money joker in or before ante 2, negative blueprint in or before ante 6)
+- Filters are logged to console when they match, helping you understand which criteria are being met and in which ante
 
 **How to Use:**
 1. Open the game settings

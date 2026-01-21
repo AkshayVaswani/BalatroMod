@@ -84,20 +84,36 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Blueprint/Brainstorm (Ante 1, Buffoon Packs)",
+							label = "Search Blueprint/Brainstorm (Shop + Packs)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchBlueprintBrainstorm",
 							callback = function(_set_toggle)
 								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 							end,
 						}),
+						create_option_cycle({
+							label = "  └─ Max Ante for Blueprint/Brainstorm",
+							scale = 0.8,
+							w = 4,
+							options = {1,2,3,4,5,6,7,8},
+							opt_callback = "change_blueprint_brainstorm_max_ante",
+							current_option = Brainstorm.SETTINGS.autoreroll.searchBlueprintBrainstormMaxAnteID or 1,
+						}),
 						create_toggle({
-							label = "Search Money Joker (Ante 1, Shop Only)",
+							label = "Search Money Joker (Shop Only)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchMoneyJoker",
 							callback = function(_set_toggle)
 								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 							end,
+						}),
+						create_option_cycle({
+							label = "  └─ Max Ante for Money Joker",
+							scale = 0.8,
+							w = 4,
+							options = {1,2,3,4,5,6,7,8},
+							opt_callback = "change_money_joker_max_ante",
+							current_option = Brainstorm.SETTINGS.autoreroll.searchMoneyJokerMaxAnteID or 1,
 						}),
 						create_toggle({
 							label = "Search Polychrome Gold/Steel Red-Seal Face (Ante 1, Any Pack)",
@@ -108,12 +124,20 @@ function create_tabs(args)
 							end,
 						}),
 						create_toggle({
-							label = "Search Negative Blueprint/Brainstorm (Ante 1, Buffoon Packs)",
+							label = "Search Negative Blueprint/Brainstorm (Shop + Packs)",
 							ref_table = Brainstorm.SETTINGS.autoreroll,
 							ref_value = "searchNegativeBlueprint",
 							callback = function(_set_toggle)
 								nativefs.write(lovely.mod_dir .. "/Brainstorm/settings.lua", STR_PACK(Brainstorm.SETTINGS))
 							end,
+						}),
+						create_option_cycle({
+							label = "  └─ Max Ante for Negative Blueprint/Brainstorm",
+							scale = 0.8,
+							w = 4,
+							options = {1,2,3,4,5,6,7,8},
+							opt_callback = "change_negative_blueprint_max_ante",
+							current_option = Brainstorm.SETTINGS.autoreroll.searchNegativeBlueprintMaxAnteID or 1,
 						}),
 						create_option_cycle({
 							label = "AutoReroll Search Tag",
